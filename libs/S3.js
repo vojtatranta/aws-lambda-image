@@ -2,7 +2,7 @@ var ImageData = require("./ImageData");
 
 var aws     = require("aws-sdk");
 var Promise = require("es6-promise").Promise;
-var client  = new aws.S3({apiVersion: "2006-03-01"});
+var client  = new aws.S3({signatureVersion: 'v4', region: 'eu-central-1'});
 
 /**
  * Get object data from S3 bucket
@@ -22,7 +22,7 @@ function getObject(bucket, key) {
                     return;
                 }
 
-                resolve(new ImageData(key, bucket, data.Body, { ContentType: data.ContentType, CacheControl: data.CacheControl }));
+                resolve(new ImageData(key, bucket, data.Body, null, { ContentType: data.ContentType, CacheControl: data.CacheControl }));
             }
         });
     });

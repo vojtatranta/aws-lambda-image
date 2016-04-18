@@ -2,6 +2,7 @@ var ImageResizer = require("./ImageResizer");
 var ImageReducer = require("./ImageReducer");
 var S3           = require("./S3");
 var Promise      = require("es6-promise").Promise;
+var request      = require('superagent');
 
 /**
  * Image processor
@@ -78,6 +79,45 @@ ImageProcessor.prototype.processImage = function ImageProcessor_processImage(ima
     return Promise.all(promiseList);
 };
 
+
+function getURL(bucket, original) {
+    return 'https://' + bucket + '.s3.eu-central-1.amazonaws.com/' + original;
+}
+
+function prepareForDB(image) {
+    return {
+        original: image.original,
+        thumb: image.getFileName(),
+        datetime: image.datetime,
+        usergroup: 1,
+        url: getURL(image.getBucketName(), image.original)
+    };
+}
+
+function getApiURL() {
+    if (process.env.NODE_ENV == 'debug') {
+        return 'http://localhost:3333/add';
+    } else {
+        return 'https://fotky.tabornadvorku.cz/add';
+    }
+}
+
+function saveToDB(image) {
+    var imageData = prepareForDB(image);
+    console.log(imageData)
+    return new Promise(function(resolve, reject) {
+        request.post(getApiURL())
+        .send(imageData)
+        .end(function(err, res) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(image);
+            }
+        });
+    });
+}
+
 /**
  * Execute resize image
  *
@@ -96,7 +136,13 @@ ImageProcessor.prototype.execResizeImage = function ImageProcessor_execResizeIma
 
             reducer.exec(resizedImage)
             .then(function(reducedImage) {
-                resolve(reducedImage);
+                saveToDB(reducedImage)
+                .then(function(image) {
+                    resolve(image);
+                })
+                .catch(function(message) {
+                    reject(message);
+                });
             })
             .catch(function(message) {
                 reject(message);

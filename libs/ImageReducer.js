@@ -42,10 +42,12 @@ ImageReducer.prototype.exec = function ImageReducer_exec(image) {
             }
 
             resolve(new ImageData(
-                dir + image.getBaseName(),
+                dir + image.getFileName(),
                 option.bucket || image.bucketName,
                 buffer,
-                image.getHeaders()
+                image.datetime,
+                image.getHeaders(),
+                image.getFileName()
             ));
         })
         .catch(function(message) {
@@ -65,7 +67,7 @@ ImageReducer.prototype.exec = function ImageReducer_exec(image) {
 ImageReducer.prototype.createReduceStreams = function ImageReducer_createReduceStreams(type) {
     var streams = [];
 
-    switch ( type ) {
+    switch ( type.toLowerCase() ) {
         case "png":
             streams.push((new Pngquant()).spawnProcess());
             streams.push((new Pngout()).spawnProcess());

@@ -49,8 +49,8 @@ var getImageDateTime = function(imgPath, cb) {
 ImageResizer.prototype.exec = function ImageResizer_exec(image) {
     var params = {
         srcData:   image.getData().toString("binary"),
-        srcFormat: image.getType(),
-        format:    image.getType(),
+        srcFormat: image.getType().toLowerCase(),
+        format:    image.getType().toLowerCase(),
         width:     this.width
     };
 
@@ -59,8 +59,8 @@ ImageResizer.prototype.exec = function ImageResizer_exec(image) {
             if ( err || stderr ) {
                 reject("ImageMagick err" + (err || stderr));
             } else {
-                getImageDateTime(new Buffer(options.srcData, 'binary'), function(datetime) {
-                    resolve(new ImageData(
+                getImageDateTime(image.data, function(datetime) {
+                     resolve(new ImageData(
                         image.fileName,
                         image.bucketName,
                         stdout,
@@ -68,6 +68,7 @@ ImageResizer.prototype.exec = function ImageResizer_exec(image) {
                         image.getHeaders()
                     ));
                 });
+
             }
         });
     });

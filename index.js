@@ -13,7 +13,6 @@ var path = require("path");
 
 // Lambda Handler
 exports.handler = function(event, context) {
-    console.log(JSON.parse(event), JSON.parse(context));
     var s3Object   = event.Records[0].s3;
     var configPath = path.resolve(__dirname, "config.json");
     var processor  = new ImageProcessor(s3Object);
@@ -25,6 +24,8 @@ exports.handler = function(event, context) {
     processor.run(config)
     .then(function(proceedImages) {
         context.succeed("OK, numbers of " + proceedImages.length + " images has proceeded.");
+    }, function(msg) {
+        console.log(msg);
     })
     .catch(function(messages) {
         context.fail("Woops, image process failed: " + messages);
