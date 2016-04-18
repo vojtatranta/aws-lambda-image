@@ -9,11 +9,12 @@ var path = require("path");
  * @param String|Buffer data
  * @param Object headers
  */
-function ImageData(key, name, data, headers) {
+function ImageData(key, name, data, datetime, headers) {
     this.fileName   = key;
     this.bucketName = name;
     this.data       = ( Buffer.isBuffer(data) ) ? data : new Buffer(data, "binary");
     this.headers    = headers;
+    this.datetime   = datetime;
 }
 
 /**

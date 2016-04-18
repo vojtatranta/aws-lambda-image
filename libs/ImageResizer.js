@@ -2,6 +2,7 @@ var ImageData   = require("./ImageData");
 
 var Promise     = require("es6-promise").Promise;
 var ImageMagick = require("imagemagick");
+var ExifImage = require('exif').ExifImage;
 
 /**
  * Image Resizer
@@ -13,6 +14,30 @@ var ImageMagick = require("imagemagick");
 function ImageResizer(width) {
     this.width = width;
 }
+
+
+var parseDateTime = function(exif) {
+    var dt = exif['exif']['DateTimeOriginal'];
+    if ((typeof dt !== "undefined" && dt !== null)) {
+        var splitted = dt.split(' ');
+        return [splitted[0].replace(':', '-').replace(':', '-'), splitted[1]].join(' ');
+    } else {
+        return null;
+    }
+};
+
+
+var getImageDateTime = function(imgPath, cb) {
+    try {
+        return new ExifImage({image: imgPath}, function(error, exifData) {
+            if (error || !(typeof exifData !== "undefined" && exifData !== null)) { return cb(null); }
+            return cb(parseDateTime(exifData));
+        });
+    } catch (error) {
+        return cb(null);
+    }
+};
+
 
 /**
  * Execute resize
@@ -34,12 +59,15 @@ ImageResizer.prototype.exec = function ImageResizer_exec(image) {
             if ( err || stderr ) {
                 reject("ImageMagick err" + (err || stderr));
             } else {
-                resolve(new ImageData(
-                    image.fileName,
-                    image.bucketName,
-                    stdout,
-                    image.getHeaders()
-                ));
+                getImageDateTime(new Buffer(options.srcData, 'binary'), function(datetime) {
+                    resolve(new ImageData(
+                        image.fileName,
+                        image.bucketName,
+                        stdout,
+                        datetime,
+                        image.getHeaders()
+                    ));
+                });
             }
         });
     });

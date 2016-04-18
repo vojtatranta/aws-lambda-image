@@ -13,6 +13,7 @@ var path = require("path");
 
 // Lambda Handler
 exports.handler = function(event, context) {
+    console.log(JSON.parse(event), JSON.parse(context));
     var s3Object   = event.Records[0].s3;
     var configPath = path.resolve(__dirname, "config.json");
     var processor  = new ImageProcessor(s3Object);
