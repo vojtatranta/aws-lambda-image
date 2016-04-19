@@ -1,4 +1,4 @@
-var ImageResizer = require("../libs/ImageResizer");
+var resize = require("../libs/ImageResizer");
 var ImageData    = require("../libs/ImageData");
 var ImageMagick  = require("imagemagick");
 
@@ -10,11 +10,10 @@ var destPath   = path.join(__dirname, "/fixture/fixture_resized.jpg");
 describe("Resize JPEG Test", function() {
 
     it("Resize JPEG", function(done) {
-        var resizer = new ImageResizer(200);
         var buffer  = fs.readFileSync(path.join(__dirname, "/fixture/fixture.jpg"), {encoding: "binary"});
         var image   = new ImageData("fixture/fixture.jpg", "fixture", buffer);
 
-        resizer.exec(image)
+        resize(200, image)
         .then(function(resized) {
             fs.writeFileSync(destPath, resized.getData(), {encoding: "binary"});
             ImageMagick.identify(["-format", "%w", destPath], function(err, out) {

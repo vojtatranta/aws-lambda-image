@@ -1,4 +1,4 @@
-var ImageResizer = require("./ImageResizer");
+var resize = require("./ImageResizer");
 var ImageReducer = require("./ImageReducer");
 var S3           = require("./S3");
 var Promise      = require("es6-promise").Promise;
@@ -17,6 +17,10 @@ function ImageProcessor(s3Object) {
     this.s3Object = s3Object;
 }
 
+function promise(fn) {
+    return new Promise(fn);
+}
+
 /**
  * Run the process
  *
@@ -24,40 +28,26 @@ function ImageProcessor(s3Object) {
  * @param Config config
  */
 ImageProcessor.prototype.run = function ImageProcessor_run(config) {
-    return new Promise(function(resolve, reject) {
-        // If object.size equals 0, stop process
-        if ( this.s3Object.object.size === 0 ) {
-            reject("Object size equal zero. Nothing to process.");
-            return;
-        }
+    // If object.size equals 0, stop process
+    if ( this.s3Object.object.size === 0 ) {
+        reject("Object size equal zero. Nothing to process.");
+        return;
+    }
 
-        if ( ! config.get("bucket") ) {
-            config.set("bucket", this.s3Object.bucket.name);
-        }
+    if ( ! config.get("bucket") ) {
+        config.set("bucket", this.s3Object.bucket.name);
+    }
 
-        S3.getObject(
-            this.s3Object.bucket.name,
-            this.s3Object.object.key
-        )
-        .then(function(imageData) {
-            this.processImage(imageData, config)
-            .then(function(results) {
-                S3.putObjects(results)
-                .then(function(images) {
-                    resolve(images);
-                })
-                .catch(function(messages) {
-                    reject(messages);
-                });
-            })
-            .catch(function(messages) {
-                reject(messages);
-            });
-        }.bind(this))
-        .catch(function(error) {
-            reject(error);
-        });
-    }.bind(this));
+    return S3.getObject(
+        this.s3Object.bucket.name,
+        this.s3Object.object.key
+    )
+    .then(function(imageData) {
+        return this.processImage(imageData, config);
+    }.bind(this))
+    .then(function(results) {
+        return S3.putObjects(results);
+    });
 };
 
 ImageProcessor.prototype.processImage = function ImageProcessor_processImage(imageData, config) {
@@ -104,8 +94,7 @@ function getApiURL() {
 
 function saveToDB(image) {
     var imageData = prepareForDB(image);
-    console.log(imageData)
-    return new Promise(function(resolve, reject) {
+    return promise(function(resolve, reject) {
         request.post(getApiURL())
         .send(imageData)
         .end(function(err, res) {
@@ -127,30 +116,13 @@ function saveToDB(image) {
  * @return Promise
  */
 ImageProcessor.prototype.execResizeImage = function ImageProcessor_execResizeImage(option, imageData) {
-    return new Promise(function(resolve, reject) {
-        var resizer = new ImageResizer(option.size);
-
-        resizer.exec(imageData)
-        .then(function(resizedImage) {
-            var reducer = new ImageReducer(option);
-
-            reducer.exec(resizedImage)
-            .then(function(reducedImage) {
-                saveToDB(reducedImage)
-                .then(function(image) {
-                    resolve(image);
-                })
-                .catch(function(message) {
-                    reject(message);
-                });
-            })
-            .catch(function(message) {
-                reject(message);
-            });
-        })
-        .catch(function(message) {
-            reject(message);
-        });
+    return resize(option.size, imageData)
+    .then(function(resizedImage) {
+        var reducer = new ImageReducer(option);
+        return reducer.exec(resizedImage);
+    })
+    .then(function(reducedImage) {
+        return saveToDB(reducedImage);
     });
 };
 
@@ -163,17 +135,9 @@ ImageProcessor.prototype.execResizeImage = function ImageProcessor_execResizeIma
  * @return Promise
  */
 ImageProcessor.prototype.execReduceImage = function(option, imageData) {
-    return new Promise(function(resolve, reject) {
-        var reducer = new ImageReducer(option);
+    var reducer = new ImageReducer(option);
 
-        reducer.exec(imageData)
-        .then(function(reducedImage) {
-            resolve(reducedImage);
-        })
-        .catch(function(message) {
-            reject(message);
-        });
-    });
+    return reducer.exec(imageData);
 };
 
 module.exports = ImageProcessor;

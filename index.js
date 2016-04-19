@@ -7,9 +7,35 @@
  */
 var ImageProcessor = require("./libs/ImageProcessor");
 var Config         = require("./libs/Config");
+var Promise     = require("es6-promise").Promise;
 
 var fs   = require("fs");
 var path = require("path");
+
+function retry(maxRetries, promiseFn, context, args) {
+    function createPromiseFromFn(onResolve, onReject) {
+        return promiseFn.apply(context, args)
+                .then(onResolve, onReject)
+                .catch(onReject);
+    }
+    return new Promise(function(resolve, reject) {
+        function onResolve(result) {
+            return resolve(result);
+        }
+
+        var retries = 0;
+        function onReject(err) {
+            retries++;
+            if (retries == maxRetries) {
+                reject(err, 'Too many retries');
+            } else {
+                return createPromiseFromFn(onResolve, onReject);
+            }
+        }
+
+        createPromiseFromFn(onResolve, onReject);
+    });
+}
 
 // Lambda Handler
 exports.handler = function(event, context) {
@@ -21,13 +47,13 @@ exports.handler = function(event, context) {
     );
 
     console.log(s3Object);
-    processor.run(config)
-    .then(function(proceedImages) {
-        context.succeed("OK, numbers of " + proceedImages.length + " images has proceeded.");
-    }, function(msg) {
-        console.log(msg);
-    })
-    .catch(function(messages) {
-        context.fail("Woops, image process failed: " + messages);
-    });
+    retry(3, processor.run, processor, [ config ])
+        .then(function(proceedImages) {
+            context.succeed("OK, numbers of " + proceedImages.length + " images has proceeded.");
+        }, function(err) {
+            context.fail('Reject:' + err);
+        })
+        .catch(function(messages) {
+            context.fail("Woops, image process failed: " + messages);
+        });
 };

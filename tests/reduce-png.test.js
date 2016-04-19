@@ -1,4 +1,4 @@
-var ImageReducer = require("../libs/ImageReducer");
+    var ImageReducer = require("../libs/ImageReducer");
 var ImageData    = require("../libs/ImageData");
 
 var expect  = require("chai").expect;

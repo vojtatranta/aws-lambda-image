@@ -4,17 +4,6 @@ var Promise     = require("es6-promise").Promise;
 var ImageMagick = require("imagemagick");
 var ExifImage = require('exif').ExifImage;
 
-/**
- * Image Resizer
- * resize image with ImageMagick
- *
- * @constructor
- * @param Number width
- */
-function ImageResizer(width) {
-    this.width = width;
-}
-
 
 var parseDateTime = function(exif) {
     var dt = exif['exif']['DateTimeOriginal'];
@@ -46,12 +35,13 @@ var getImageDateTime = function(imgPath, cb) {
  * @param ImageData image
  * @return Promise
  */
-ImageResizer.prototype.exec = function ImageResizer_exec(image) {
+
+module.exports = function ImageResizer_exec(width, image) {
     var params = {
         srcData:   image.getData().toString("binary"),
         srcFormat: image.getType().toLowerCase(),
         format:    image.getType().toLowerCase(),
-        width:     this.width
+        width:     width
     };
 
     return new Promise(function(resolve, reject) {
@@ -73,5 +63,3 @@ ImageResizer.prototype.exec = function ImageResizer_exec(image) {
         });
     });
 };
-
-module.exports = ImageResizer;
