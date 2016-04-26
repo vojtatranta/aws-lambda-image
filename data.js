@@ -27,7 +27,7 @@ module.exports = {
                "arn":"arn:aws:s3:::ldtphotostore"
             },
             "object":{
-               "key":"images/P1asas010001.JPG",
+               "key":"mara.jpg",
                "size":849990,
                "eTag":"291c93eebc96f39b16496596c13ed0fd",
                "sequencer":"0057151F52B9C45CCD"

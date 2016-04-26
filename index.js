@@ -49,6 +49,9 @@ exports.handler = function(event, context) {
     console.log(s3Object);
     retry(3, processor.run, processor, [ config ])
         .then(function(proceedImages) {
+            proceedImages.forEach(function(image) {
+                console.log(image);
+            });
             context.succeed("OK, numbers of " + proceedImages.length + " images has proceeded.");
         }, function(err) {
             context.fail('Reject:' + err);
