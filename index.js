@@ -39,10 +39,11 @@ function retry(maxRetries, promiseFn, context, args) {
 
 // Lambda Handler
 exports.handler = function(event, context) {
-    console.log('EVNT:', event)
+    var s3Object = event.Records[0].s3;
+    if (event.Records[0].Sns) {
+        s3Object = JSON.parse(event.Records[0].Sns.Message).Records[0].s3;
+    }
 
-    return
-    var s3Object   = JSON.parse(event.Records[0].Sns.Message).Records[0].s3;
     var configPath = path.resolve(__dirname, "config.json");
     var processor  = new ImageProcessor(s3Object);
     var config     = new Config(
