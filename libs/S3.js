@@ -28,6 +28,14 @@ function getObject(bucket, key) {
     });
 }
 
+function getMime(contentType) {
+    if (!contentType || contentType === 'application/octet-stream') {
+        return 'image/jpeg'
+    }
+
+    return contentType
+}
+
 /**
  * Put object data to S3 bucket
  *
@@ -43,8 +51,8 @@ function putObject(bucket, key, buffer, headers) {
             Key: key,
             Body: buffer,
             Metadata: {"img-processed": "true"},
-            ContentType: headers.ContentType,
-            CacheControl: headers.CacheControl
+            ContentType: getMime(headers.ContentType),
+            CacheControl: headers.CacheControl || 'max-age=200000000, public',
         }, function(err) {
             if ( err ) {
                 reject(err);
@@ -62,7 +70,7 @@ function putObject(bucket, key, buffer, headers) {
  * @return Promise.all
  */
 function putObjects(images) {
-    return Promise.all(images.map(function(image) {
+    promises = images.map(function(image) {
         return new Promise(function(resolve, reject) {
             putObject(image.getBucketName(), image.getFileName(), image.getData(), image.getHeaders())
             .then(function() {
@@ -72,7 +80,9 @@ function putObjects(images) {
                 reject(message);
             });
         });
-    }));
+    });
+
+    return Promise.all(promises);
 }
 
 module.exports = {

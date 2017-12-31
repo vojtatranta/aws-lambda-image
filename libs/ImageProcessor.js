@@ -3,6 +3,7 @@ var ImageReducer = require("./ImageReducer");
 var S3           = require("./S3");
 var Promise      = require("es6-promise").Promise;
 var request      = require('superagent');
+var ImageData = require('./ImageData');
 
 /**
  * Image processor
@@ -64,14 +65,22 @@ ImageProcessor.prototype.processImage = function ImageProcessor_processImage(ima
     if ( ! reduce.bucket ) {
         reduce.bucket = config.get("bucket");
     }
-    promiseList.unshift(this.execReduceImage(reduce, imageData));
 
-    return Promise.all(promiseList);
+    return Promise.all(promiseList)
+        .then(saveImages);
 };
 
 
 function getURL(bucket, original) {
     return 'https://' + bucket + '.s3.eu-central-1.amazonaws.com/' + original;
+}
+
+function saveImages(images) {
+    return sendToDB(images.map(function(image) {
+        return prepareForDB(image)
+    })).then(function() {
+        return images
+    });
 }
 
 function prepareForDB(image) {
@@ -80,7 +89,8 @@ function prepareForDB(image) {
         thumb: image.getFileName(),
         datetime: image.datetime,
         usergroup: 1,
-        url: getURL(image.getBucketName(), image.original)
+        url: getURL(image.getBucketName(), image.original),
+        width: image.width
     };
 }
 
@@ -92,16 +102,15 @@ function getApiURL() {
     }
 }
 
-function saveToDB(image) {
-    var imageData = prepareForDB(image);
+function sendToDB(images) {
     return promise(function(resolve, reject) {
         request.post(getApiURL())
-        .send(imageData)
+        .send(images)
         .end(function(err, res) {
             if (err) {
                 reject(err);
             } else {
-                resolve(image);
+                resolve(images);
             }
         });
     });
@@ -116,13 +125,16 @@ function saveToDB(image) {
  * @return Promise
  */
 ImageProcessor.prototype.execResizeImage = function ImageProcessor_execResizeImage(option, imageData) {
+
     return resize(option.size, imageData)
     .then(function(resizedImage) {
-        var reducer = new ImageReducer(option);
-        return reducer.exec(resizedImage);
-    })
-    .then(function(reducedImage) {
-        return saveToDB(reducedImage);
+        var dir = option.directory || resizedImage.getDirName();
+
+        if ( dir ) {
+            dir = dir.replace(/\/$/, "") + "/";
+        }
+        resizedImage.fileName = dir + resizedImage.getFileName();
+        return resizedImage;
     });
 };
 

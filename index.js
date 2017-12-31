@@ -39,14 +39,17 @@ function retry(maxRetries, promiseFn, context, args) {
 
 // Lambda Handler
 exports.handler = function(event, context) {
-    var s3Object   = event.Records[0].s3;
+    console.log('EVNT:', event)
+
+    return
+    var s3Object   = JSON.parse(event.Records[0].Sns.Message).Records[0].s3;
     var configPath = path.resolve(__dirname, "config.json");
     var processor  = new ImageProcessor(s3Object);
     var config     = new Config(
         JSON.parse(fs.readFileSync(configPath, { encoding: "utf8" }))
     );
 
-    console.log(s3Object);
+    console.log('S3 OBJECT:', s3Object);
     retry(3, processor.run, processor, [ config ])
         .then(function(proceedImages) {
             proceedImages.forEach(function(image) {

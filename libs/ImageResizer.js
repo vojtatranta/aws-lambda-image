@@ -3,7 +3,7 @@ var ImageData   = require("./ImageData");
 var Promise     = require("es6-promise").Promise;
 var ImageMagick = require("imagemagick");
 var ExifImage = require('exif').ExifImage;
-var gm = require('gm');
+var gm = require('gm').subClass({imageMagick: true});
 
 
 var parseDateTime = function(exif) {
@@ -50,12 +50,12 @@ module.exports = function ImageResizer_exec(width, image) {
     return new Promise(function(resolve, reject) {
         gm(image.data)
         .autoOrient()
+        .interlace('Line')
+        .type('optimize')
+        .compress('JPEG')
         .gravity('Center')
-        .thumb(width, 768, null, 80, function(err, stdout, stderr, cmd) {
-            if ( err || stderr ) {
-                return reject("ImageMagick err" + (err || stderr));
-            }
-        }).toBuffer('JPG', function(err, stdout) {
+        .resize(width)
+        .toBuffer('JPG', function(err, stdout) {
             if ( err ) {
                 reject("ImageMagick err" + (err));
             } else {
@@ -65,7 +65,9 @@ module.exports = function ImageResizer_exec(width, image) {
                         image.bucketName,
                         stdout,
                         datetime,
-                        image.getHeaders()
+                        image.getHeaders(),
+                        image.getFileName(),
+                        width
                     ));
                 });
 
