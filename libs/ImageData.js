@@ -1,4 +1,4 @@
-var path = require("path");
+const path = require('path')
 
 /**
  * Image data interface
@@ -9,14 +9,15 @@ var path = require("path");
  * @param String|Buffer data
  * @param Object headers
  */
-function ImageData(key, name, data, datetime, headers, original, width) {
-    this.fileName   = key;
-    this.bucketName = name;
-    this.data       = ( Buffer.isBuffer(data) ) ? data : new Buffer(data, "binary");
-    this.headers    = headers;
-    this.datetime   = datetime;
-    this.original   = original || null;
-    this.width      = width || null;
+function ImageData(key, name, data, datetime, headers, original, width, type) {
+  this.fileName = key
+  this.bucketName = name
+  this.data = (Buffer.isBuffer(data)) ? data : new Buffer(data, 'binary')
+  this.headers = headers
+  this.datetime = datetime
+  this.original = original || null
+  this.width = width || null
+  this.type = type || 'image'
 }
 
 /**
@@ -26,8 +27,8 @@ function ImageData(key, name, data, datetime, headers, original, width) {
  * @return String
  */
 ImageData.prototype.getBucketName = function ImageData_getBucketName() {
-    return this.bucketName;
-};
+  return this.bucketName
+}
 
 /**
  * Basename getter
@@ -36,8 +37,8 @@ ImageData.prototype.getBucketName = function ImageData_getBucketName() {
  * @return String
  */
 ImageData.prototype.getBaseName = function ImageData_getBaseName() {
-    return path.basename(this.fileName);
-};
+  return path.basename(this.fileName)
+}
 
 /**
  * Dirname getter
@@ -46,10 +47,10 @@ ImageData.prototype.getBaseName = function ImageData_getBaseName() {
  * @return String
  */
 ImageData.prototype.getDirName = function ImageData_getDirName() {
-    var dir = path.dirname(this.fileName);
+  const dir = path.dirname(this.fileName)
 
-    return ( dir === "." ) ? "" : dir;
-};
+  return (dir === '.') ? '' : dir
+}
 
 /**
  * Filename getter
@@ -58,8 +59,8 @@ ImageData.prototype.getDirName = function ImageData_getDirName() {
  * @return String
  */
 ImageData.prototype.getFileName = function ImageData_getFileName() {
-    return this.fileName;
-};
+  return this.fileName
+}
 
 /**
  * Image type getter
@@ -68,8 +69,8 @@ ImageData.prototype.getFileName = function ImageData_getFileName() {
  * @return String
  */
 ImageData.prototype.getType = function ImageData_getType() {
-    return path.extname(this.fileName).slice(1);
-};
+  return path.extname(this.fileName).slice(1)
+}
 
 /**
  * Image buffer getter
@@ -78,8 +79,8 @@ ImageData.prototype.getType = function ImageData_getType() {
  * @return Buffer
  */
 ImageData.prototype.getData = function ImageData_getData() {
-    return this.data;
-};
+  return this.data
+}
 
 /**
  * Image headers getter
@@ -88,7 +89,7 @@ ImageData.prototype.getData = function ImageData_getData() {
  * @return Object
  */
 ImageData.prototype.getHeaders = function ImageData_getHeaders() {
-    return this.headers;
-};
+  return this.headers
+}
 
-module.exports = ImageData;
+module.exports = ImageData

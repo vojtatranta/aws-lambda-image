@@ -1,66 +1,72 @@
-/**
- * Automatic Image resize, reduce with AWS Lambda
- * Lambda main handler
- *
- * @author Yoshiaki Sugimoto
- * @created 2015/10/29
- */
-var ImageProcessor = require("./libs/ImageProcessor");
-var Config         = require("./libs/Config");
-var Promise     = require("es6-promise").Promise;
+const ImageProcessor = require('./libs/ImageProcessor')
+const Config = require('./libs/Config')
+const processVideo = require('./libs/video')
 
-var fs   = require("fs");
-var path = require("path");
+const fs = require('fs')
+const path = require('path')
 
 function retry(maxRetries, promiseFn, context, args) {
-    function createPromiseFromFn(onResolve, onReject) {
-        return promiseFn.apply(context, args)
-                .then(onResolve, onReject)
-                .catch(onReject);
+  function createPromiseFromFn(onResolve, onReject) {
+    return promiseFn.apply(context, args)
+      .then(onResolve, onReject)
+      .catch(onReject)
+  }
+  return new Promise(((resolve, reject) => {
+    function onResolve(result) {
+      return resolve(result)
     }
-    return new Promise(function(resolve, reject) {
-        function onResolve(result) {
-            return resolve(result);
-        }
 
-        var retries = 0;
-        function onReject(err) {
-            retries++;
-            if (retries == maxRetries) {
-                reject(err, 'Too many retries');
-            } else {
-                return createPromiseFromFn(onResolve, onReject);
-            }
-        }
+    let retries = 0
+    function onReject(err) {
+      retries++
+      if (retries === maxRetries) {
+        reject(err, 'Too many retries')
+      } else {
+        return createPromiseFromFn(onResolve, onReject)
+      }
+    }
 
-        createPromiseFromFn(onResolve, onReject);
-    });
+    createPromiseFromFn(onResolve, onReject)
+  }))
 }
 
 // Lambda Handler
-exports.handler = function(event, context) {
-    var s3Object = event.Records[0].s3;
-    if (event.Records[0].Sns) {
-        s3Object = JSON.parse(event.Records[0].Sns.Message).Records[0].s3;
-    }
+exports.handler = function (event, context) {
+  let s3Object = event.Records[0].s3
+  if (event.Records[0].Sns) {
+    s3Object = JSON.parse(event.Records[0].Sns.Message).Records[0].s3
+  }
 
-    var configPath = path.resolve(__dirname, "config.json");
-    var processor  = new ImageProcessor(s3Object);
-    var config     = new Config(
-        JSON.parse(fs.readFileSync(configPath, { encoding: "utf8" }))
-    );
+  let resultPromise = null
+  if (/(mp4|mov)/.test(s3Object.object.key)) {
+    resultPromise = retry(3, () => {
+      return new Promise((resolve, reject) => {
+        try {
+          processVideo(s3Object)
+        } catch (err) {
+          reject(err)
+        }
+      })
+    })
+  } else {
+    const configPath = path.resolve(__dirname, 'config.json')
+    const processor = new ImageProcessor(s3Object)
+    const config = new Config(JSON.parse(fs.readFileSync(configPath, { encoding: 'utf8' })))
 
-    console.log('S3 OBJECT:', s3Object);
-    retry(3, processor.run, processor, [ config ])
-        .then(function(proceedImages) {
-            proceedImages.forEach(function(image) {
-                console.log(image);
-            });
-            context.succeed("OK, numbers of " + proceedImages.length + " images has proceeded.");
-        }, function(err) {
-            context.fail('Reject:' + err);
-        })
-        .catch(function(messages) {
-            context.fail("Woops, image process failed: " + messages);
-        });
-};
+    console.log('S3 OBJECT:', s3Object)
+    resultPromise = retry(3, processor.run, processor, [ config ])
+  }
+
+  resultPromise
+    .then((proceedImages) => {
+      proceedImages.forEach((image) => {
+        console.log(image)
+      })
+      context.succeed(`OK, numbers of ${proceedImages.length} images has proceeded.`)
+    }, (err) => {
+      context.fail(`Reject:${err}`)
+    })
+    .catch((messages) => {
+      context.fail(`Woops, image process failed: ${messages}`)
+    })
+}

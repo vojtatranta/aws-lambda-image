@@ -1,7 +1,7 @@
-var spawn = require("child_process").spawn;
-var util  = require("util");
-var path  = require("path");
-var fs    = require("fs");
+const spawn = require('child_process').spawn;
+const util = require('util');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * Optimizer Base Constructor
@@ -18,7 +18,7 @@ function Optimizer() {
  * @return ChildProcess
  */
 Optimizer.prototype.spawnProcess = function Optimizer_spawnProcess() {
-    return spawn(this.command, this.args);
+  return spawn(this.command, this.args);
 };
 
 /**
@@ -30,12 +30,12 @@ Optimizer.prototype.spawnProcess = function Optimizer_spawnProcess() {
  * @throws Error
  */
 Optimizer.prototype.findBin = function Optimizer_findBin(binName) {
-    var binPath = path.resolve(__dirname, "../../bin/", process.platform, binName);
+  const binPath = path.resolve(__dirname, '../../bin/', process.platform, binName);
 
-    if ( !fs.existsSync(binPath) ) {
-        throw new Error("Undefined binary: " + binPath);
-    }
-    return binPath;
+  if (!fs.existsSync(binPath)) {
+    throw new Error(`Undefined binary: ${binPath}`);
+  }
+  return binPath;
 };
 
 /**
@@ -45,9 +45,9 @@ Optimizer.prototype.findBin = function Optimizer_findBin(binName) {
  * @param Function subConstructor
  * @return Function
  */
-Optimizer.extend = function(subConstructor) {
-    util.inherits(subConstructor, Optimizer);
-    return subConstructor;
+Optimizer.extend = function (subConstructor) {
+  util.inherits(subConstructor, Optimizer);
+  return subConstructor;
 };
 
 module.exports = Optimizer;

@@ -1,4 +1,4 @@
-var Optimizer = require("./Optimizer");
+const Optimizer = require('./Optimizer');
 
 /**
  * pngout optimizer
@@ -7,10 +7,10 @@ var Optimizer = require("./Optimizer");
  * @extends Optimizer
  */
 function Pngout() {
-    Optimizer.call(this);
+  Optimizer.call(this);
 
-    this.command = this.findBin("pngout");
-    this.args    = ["-", "-", "-s0", "-k0", "-f0"];
+  this.command = this.findBin('pngout');
+  this.args = [ '-', '-', '-s0', '-k0', '-f0' ];
 }
 
 module.exports = Optimizer.extend(Pngout);

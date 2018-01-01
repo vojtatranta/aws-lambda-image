@@ -1,4 +1,4 @@
-var Optimizer = require("./Optimizer");
+const Optimizer = require('./Optimizer');
 
 /**
  * pngquant optimizer
@@ -7,12 +7,11 @@ var Optimizer = require("./Optimizer");
  * @extends Optimizer
  */
 function Pngquant() {
-    Optimizer.call(this);
+  Optimizer.call(this);
 
-    this.command = this.findBin("pngquant");
-    this.args    = ["--speed=1", "256", "-"];
+  this.command = this.findBin('pngquant');
+  this.args = [ '--speed=1', '256', '-' ];
 }
 
 module.exports = Optimizer.extend(Pngquant);
-
 

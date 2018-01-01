@@ -1,5 +1,4 @@
-var WritableStream = require("./WritableImageStream");
-var Promise        = require("es6-promise").Promise;
+const WritableStream = require('./WritableImageStream')
 
 /**
  * Strem Chain
@@ -9,8 +8,8 @@ var Promise        = require("es6-promise").Promise;
  * @param stream.Readable inputStream
  */
 function StreamChain(inputStream) {
-    this.inputStream = inputStream;
-    this.pipeStreams = [];
+  this.inputStream = inputStream
+  this.pipeStreams = []
 }
 
 /**
@@ -21,9 +20,9 @@ function StreamChain(inputStream) {
  * @param stream.Readable inputStream
  * @return StreamChain
  */
-StreamChain.make = function(inputStream) {
-    return new StreamChain(inputStream);
-};
+StreamChain.make = function (inputStream) {
+  return new StreamChain(inputStream)
+}
 
 /**
  * Pipes stream lists
@@ -32,15 +31,15 @@ StreamChain.make = function(inputStream) {
  * @param Array<ChildProcess> streams
  * @return StreamChain this
  */
-StreamChain.prototype.pipes = function(streams) {
-    var index = -1;
+StreamChain.prototype.pipes = function (streams) {
+  let index = -1
 
-    while ( streams[++index] ) {
-        this.pipeStreams.push(streams[index]);
-    }
+  while (streams[++index]) {
+    this.pipeStreams.push(streams[index])
+  }
 
-    return this;
-};
+  return this
+}
 
 /**
  * Run the streams
@@ -48,29 +47,29 @@ StreamChain.prototype.pipes = function(streams) {
  * @public
  * @return Promise
  */
-StreamChain.prototype.run = function() {
-    this.inputStream.pause();
+StreamChain.prototype.run = function () {
+  this.inputStream.pause()
 
-    return new Promise(function(resolve, reject) {
-        var output = new WritableStream();
-        var current;
+  return new Promise(((resolve, reject) => {
+    const output = new WritableStream()
+    let current
 
-        this.inputStream.on("error", reject);
-        current = this.inputStream;
+    this.inputStream.on('error', reject)
+    current = this.inputStream
 
-        this.pipeStreams.forEach(function(stream) {
-            stream.stderr.on("error", reject);
-            current.pipe(stream.stdin);
-            current = stream.stdout;
-        });
+    this.pipeStreams.forEach((stream) => {
+      stream.stderr.on('error', reject)
+      current.pipe(stream.stdin)
+      current = stream.stdout
+    })
 
-        current.pipe(output);
-        output.on("error", reject);
-        output.on("finish", function() {
-            resolve(output.getBufferStack());
-        });
-        this.inputStream.resume();
-    }.bind(this));
-};
+    current.pipe(output)
+    output.on('error', reject)
+    output.on('finish', () => {
+      resolve(output.getBufferStack())
+    })
+    this.inputStream.resume()
+  }))
+}
 
-module.exports = StreamChain;
+module.exports = StreamChain

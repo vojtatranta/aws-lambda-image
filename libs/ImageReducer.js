@@ -1,11 +1,9 @@
-var ImageData      = require("./ImageData");
-var Mozjpeg        = require("./optimizers/Mozjpeg");
-var Pngquant       = require("./optimizers/Pngquant");
-var Pngout         = require("./optimizers/Pngout");
-var ReadableStream = require("./ReadableImageStream");
-var StreamChain    = require("./StreamChain");
-
-var Promise = require("es6-promise").Promise;
+const ImageData = require('./ImageData')
+const Mozjpeg = require('./optimizers/Mozjpeg')
+const Pngquant = require('./optimizers/Pngquant')
+const Pngout = require('./optimizers/Pngout')
+const ReadableStream = require('./ReadableImageStream')
+const StreamChain = require('./StreamChain')
 
 /**
  * Image Reducer
@@ -15,7 +13,7 @@ var Promise = require("es6-promise").Promise;
  * @param Object option
  */
 function ImageReducer(option) {
-    this.option = option || {};
+  this.option = option || {}
 }
 
 /**
@@ -26,35 +24,35 @@ function ImageReducer(option) {
  * @return Promise
  */
 ImageReducer.prototype.exec = function ImageReducer_exec(image) {
-    var option = this.option;
+  const option = this.option
 
-    return new Promise(function(resolve, reject) {
-        var input   = new ReadableStream(image.getData());
-        var streams = this.createReduceStreams(image.getType());
-        var chain   = new StreamChain(input);
+  return new Promise(((resolve, reject) => {
+    const input = new ReadableStream(image.getData())
+    const streams = this.createReduceStreams(image.getType())
+    const chain = new StreamChain(input)
 
-        chain.pipes(streams).run()
-        .then(function(buffer) {
-            var dir = option.directory || image.getDirName();
+    chain.pipes(streams).run()
+      .then((buffer) => {
+        let dir = option.directory || image.getDirName()
 
-            if ( dir ) {
-                dir = dir.replace(/\/$/, "") + "/";
-            }
+        if (dir) {
+          dir = `${dir.replace(/\/$/, '')}/`
+        }
 
-            resolve(new ImageData(
-                dir + image.getFileName(),
-                option.bucket || image.bucketName,
-                buffer,
-                image.datetime,
-                image.getHeaders(),
-                image.getFileName()
-            ));
-        })
-        .catch(function(message) {
-            reject(message);
-        });
-    }.bind(this));
-};
+        resolve(new ImageData(
+          dir + image.getFileName(),
+          option.bucket || image.bucketName,
+          buffer,
+          image.datetime,
+          image.getHeaders(),
+          image.getFileName()
+        ))
+      })
+      .catch((message) => {
+        reject(message)
+      })
+  }))
+}
 
 /**
  * Create reduce image streams
@@ -65,22 +63,22 @@ ImageReducer.prototype.exec = function ImageReducer_exec(image) {
  * @thorws Error
  */
 ImageReducer.prototype.createReduceStreams = function ImageReducer_createReduceStreams(type) {
-    var streams = [];
+  const streams = []
 
-    switch ( type.toLowerCase() ) {
-        case "png":
-            streams.push((new Pngquant()).spawnProcess());
-            streams.push((new Pngout()).spawnProcess());
-            break;
-        case "jpg":
-        case "jpeg":
-            streams.push((new Mozjpeg()).spawnProcess());
-            break;
-        default:
-            throw new Error("Unexcepted file type.");
-    }
+  switch (type.toLowerCase()) {
+    case 'png':
+      streams.push((new Pngquant()).spawnProcess())
+      streams.push((new Pngout()).spawnProcess())
+      break
+    case 'jpg':
+    case 'jpeg':
+      streams.push((new Mozjpeg()).spawnProcess())
+      break
+    default:
+      throw new Error('Unexcepted file type.')
+  }
 
-    return streams;
-};
+  return streams
+}
 
-module.exports = ImageReducer;
+module.exports = ImageReducer

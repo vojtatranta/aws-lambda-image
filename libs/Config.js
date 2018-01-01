@@ -5,7 +5,7 @@
  * @param Object setting
  */
 function Config(setting) {
-    this.stack = setting || {};
+  this.stack = setting || {}
 }
 
 /**
@@ -17,8 +17,8 @@ function Config(setting) {
  * @return Mixed
  */
 Config.prototype.get = function Config_get(key, def) {
-    return ( key in this.stack ) ? this.stack[key] : def || null;
-};
+  return (key in this.stack) ? this.stack[key] : def || null
+}
 
 /**
  * Set the config value
@@ -29,7 +29,7 @@ Config.prototype.get = function Config_get(key, def) {
  * @return Mixed
  */
 Config.prototype.set = function Config_set(key, value) {
-    this.stack[key] = value;
-};
+  this.stack[key] = value
+}
 
-module.exports = Config;
+module.exports = Config

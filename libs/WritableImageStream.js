@@ -1,5 +1,5 @@
-var stream = require("stream");
-var util   = require("util");
+const stream = require('stream')
+const util = require('util')
 
 /**
  * Writable image binary stream implementation
@@ -8,13 +8,13 @@ var util   = require("util");
  * @extends stream.Writable
  */
 function WritableImageStream() {
-    stream.Writable.call(this);
+  stream.Writable.call(this)
 
-    this._buffers      = [];
-    this._bufferLength = 0;
+  this._buffers = []
+  this._bufferLength = 0
 }
 
-util.inherits(WritableImageStream, stream.Writable);
+util.inherits(WritableImageStream, stream.Writable)
 
 /**
  * stream.Writable interface implement
@@ -25,11 +25,11 @@ util.inherits(WritableImageStream, stream.Writable);
  * @param Function callback
  */
 WritableImageStream.prototype._write = function WritableImageStream__write(chunk, encoding, callback) {
-    this._buffers.push(chunk);
-    this._bufferLength += chunk.length;
+  this._buffers.push(chunk)
+  this._bufferLength += chunk.length
 
-    callback();
-};
+  callback()
+}
 
 /**
  * Get all written buffers after finished
@@ -38,7 +38,7 @@ WritableImageStream.prototype._write = function WritableImageStream__write(chunk
  * @return Buffer
  */
 WritableImageStream.prototype.getBufferStack = function WritableImageStream_getBufferStack() {
-    return Buffer.concat(this._buffers, this._bufferLength);
-};
+  return Buffer.concat(this._buffers, this._bufferLength)
+}
 
-module.exports = WritableImageStream;
+module.exports = WritableImageStream

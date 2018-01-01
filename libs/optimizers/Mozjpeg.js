@@ -1,4 +1,4 @@
-var Optimizer = require("./Optimizer");
+const Optimizer = require('./Optimizer');
 
 /**
  * MozJpeg(cjpeg) optimizer
@@ -7,12 +7,11 @@ var Optimizer = require("./Optimizer");
  * @extends Optimizer
  */
 function Mozjpeg() {
-    Optimizer.call(this);
+  Optimizer.call(this);
 
-    this.command = this.findBin("cjpeg");
-    this.args    = ["-optimize", "-progressive"];
+  this.command = this.findBin('cjpeg');
+  this.args = [ '-optimize', '-progressive' ];
 }
 
 module.exports = Optimizer.extend(Mozjpeg);
-
 

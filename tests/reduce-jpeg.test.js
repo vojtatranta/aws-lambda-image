@@ -1,26 +1,27 @@
-var ImageReducer = require("../libs/ImageReducer");
-var ImageData    = require("../libs/ImageData");
+const ImageReducer = require('../libs/ImageReducer')
+const ImageData = require('../libs/ImageData')
 
-var expect  = require("chai").expect;
-var fs      = require("fs");
-var path    = require("path");
-var fixture = fs.readFileSync(path.join(__dirname, "/fixture/fixture.jpg"), {encoding: "binary"});
+const expect = require('chai').expect
+const fs = require('fs')
+const path = require('path')
 
-describe("Reduce JPEG Test", function() {
-    var reducer;
+const fixture = fs.readFileSync(path.join(__dirname, '/fixture/fixture.jpg'), { encoding: 'binary' })
 
-    beforeEach(function() {
-        reducer = new ImageReducer();
-    });
+describe('Reduce JPEG Test', () => {
+  let reducer
 
-    it("Reduce JPEG", function(done) {
-        var image = new ImageData("fixture/fixture.jpg", "fixture", fixture);
+  beforeEach(() => {
+    reducer = new ImageReducer()
+  })
 
-        reducer.exec(image)
-        .then(function(reduced) {
-            expect(reduced.getData().length > 0).to.be.true;
-            expect(reduced.getData().length).to.be.below(fixture.length);
-            done();
-        });
-    });
-});
+  it('Reduce JPEG', (done) => {
+    const image = new ImageData('fixture/fixture.jpg', 'fixture', fixture)
+
+    reducer.exec(image)
+      .then((reduced) => {
+        expect(reduced.getData().length > 0).to.be.true
+        expect(reduced.getData().length).to.be.below(fixture.length)
+        done()
+      })
+  })
+})
